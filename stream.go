@@ -3,9 +3,10 @@ package ks
 import (
 	"bytes"
 	"fmt"
-	"github/myml/ks/pkgs/storage"
-	"github/myml/ks/pkgs/storage/file"
 	"io"
+
+	"github.com/myml/ks/storage"
+	"github.com/myml/ks/storage/file"
 
 	"go.uber.org/zap"
 )

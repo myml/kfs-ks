@@ -3,9 +3,10 @@ package file
 import (
 	"errors"
 	"fmt"
-	"github/myml/ks/pkgs/storage"
 	"io"
 	"os"
+
+	"github.com/myml/ks/storage"
 )
 
 var _ storage.Storage = &Storage{}

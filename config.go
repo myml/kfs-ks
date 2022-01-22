@@ -1,7 +1,7 @@
 package ks
 
 import (
-	"github/myml/ks/pkgs/storage"
+	"github.com/myml/ks/storage"
 
 	"go.uber.org/zap"
 )
