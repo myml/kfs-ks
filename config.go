@@ -3,7 +3,7 @@ package ks
 import (
 	"log"
 
-	"github.com/myml/ks/storage"
+	"github.com/myml/kfs-ks/storage"
 )
 
 func WithLogger(logger *log.Logger) func(stream *Stream) {

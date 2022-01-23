@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/myml/ks/storage"
+	"github.com/myml/kfs-ks/storage"
 )
 
 var _ storage.Storage = &Storage{}

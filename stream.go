@@ -7,7 +7,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/myml/ks/storage"
+	"github.com/myml/kfs-ks/storage"
 )
 
 type WriteReaderAt interface {

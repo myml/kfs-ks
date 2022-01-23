@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/myml/ks/storage/mem"
+	"github.com/myml/kfs-ks/storage/mem"
 	"github.com/stretchr/testify/require"
 )
 

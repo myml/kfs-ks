@@ -1,4 +1,4 @@
-module github.com/myml/ks
+module github.com/myml/kfs-ks
 
 go 1.17
 
