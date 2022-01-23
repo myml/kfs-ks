@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/myml/ks/storage"
 	"github.com/myml/ks/storage/file"
@@ -34,7 +35,8 @@ type Stream struct {
 }
 
 func (index *Stream) key(id int64) string {
-	return fmt.Sprintf("chunks/%d", id)
+	idStr := strconv.FormatInt(id, 10)
+	return fmt.Sprintf("chunks/%c/%s", idStr[0], idStr)
 }
 
 func (index *Stream) getChunk(id int64, offset int64, limit int64) (io.ReadCloser, error) {
