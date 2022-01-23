@@ -1,4 +1,4 @@
-package blob
+package mem
 
 import (
 	"bytes"
@@ -11,10 +11,9 @@ import (
 
 func TestStorage(t *testing.T) {
 	assert := require.New(t)
-	storage, err := NewStorage("mem://")
-	assert.NoError(err)
+	storage := &Storage{}
 	data := make([]byte, 1024)
-	_, err = io.ReadFull(rand.Reader, data[:])
+	_, err := io.ReadFull(rand.Reader, data[:])
 	assert.NoError(err)
 	err = storage.Set("test", bytes.NewReader(data[:]))
 	assert.NoError(err)

@@ -9,12 +9,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/myml/ks/storage/mem"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSteram(t *testing.T) {
 	assert := require.New(t)
-	stream := NewStream(WithChunkSize(100))
+	b := &mem.Storage{}
+	stream := NewStream(WithStorage(b))
 	os.Mkdir("chunks", 0700)
 
 	data := make([]byte, 1024)

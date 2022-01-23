@@ -1,12 +1,12 @@
 package ks
 
 import (
-	"github.com/myml/ks/storage"
+	"log"
 
-	"go.uber.org/zap"
+	"github.com/myml/ks/storage"
 )
 
-func WithLogger(logger *zap.Logger) func(stream *Stream) {
+func WithLogger(logger *log.Logger) func(stream *Stream) {
 	return func(stream *Stream) {
 		stream.logger = logger
 	}

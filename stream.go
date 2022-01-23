@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"strconv"
 
 	"github.com/myml/ks/storage"
-	"github.com/myml/ks/storage/file"
-
-	"go.uber.org/zap"
 )
 
 type WriteReaderAt interface {
@@ -19,10 +17,11 @@ type WriteReaderAt interface {
 
 var _ WriteReaderAt = &Stream{}
 
-func NewStream(opts ...func(stream *Stream)) *Stream {
-	stream := &Stream{storage: &file.Storage{}, logger: zap.NewExample(), chunkSize: 1024 * 1024 * 4}
-	for i := range opts {
-		opts[i](stream)
+func NewStream(withStorage func(stream *Stream), withs ...func(stream *Stream)) *Stream {
+	stream := &Stream{logger: log.Default(), chunkSize: 1024 * 1024 * 4}
+	withStorage(stream)
+	for i := range withs {
+		withs[i](stream)
 	}
 	return stream
 }
@@ -30,7 +29,7 @@ func NewStream(opts ...func(stream *Stream)) *Stream {
 type Stream struct {
 	chunkSize int64
 	storage   storage.Storage
-	logger    *zap.Logger
+	logger    *log.Logger
 	debug     bool
 }
 
@@ -76,14 +75,15 @@ func (index *Stream) ReadAt(p []byte, off int64) (n int, err error) {
 			legnth = 0
 		}
 		if index.debug {
-			index.logger.Debug("readAt",
-				zap.Int64("readat_offset", off),
-				zap.Int64("current_offset", offset),
-				zap.Int64("buff_size", int64(buff.Len())),
-				zap.Int64("size", offset),
-				zap.Int64("chunk_id", chunkID),
-				zap.Int64("chunk_offset", chunkOffset),
-				zap.Int64("length", legnth),
+			index.logger.Println(
+				"readAt",
+				"readat_offset", off,
+				"current_offset", offset,
+				"buff_size", int64(buff.Len()),
+				"size", offset,
+				"chunk_id", chunkID,
+				"chunk_offset", chunkOffset,
+				"length", legnth,
 			)
 		}
 		r, err := index.getChunk(chunkID, chunkOffset, legnth)
@@ -135,14 +135,15 @@ func (index *Stream) WriteAt(p []byte, off int64) (n int, err error) {
 			return 0, fmt.Errorf("set chunk: %w", err)
 		}
 		if index.debug {
-			index.logger.Debug("writeAt",
-				zap.Int64("chunk_id", chunkID),
-				zap.Int64("chunk_offset", chunkOffset),
-				zap.Int64("write_at_offset", off),
-				zap.Int64("current_offset", offset),
-				zap.Int64("size", size),
-				zap.Int64("chunk_limit", chunkLimit),
-				zap.Int64("write_number", int64(n)),
+			index.logger.Println(
+				"writeAt",
+				"chunk_id", chunkID,
+				"chunk_offset", chunkOffset,
+				"write_at_offset", off,
+				"current_offset", offset,
+				"size", size,
+				"chunk_limit", chunkLimit,
+				"write_number", int64(n),
 			)
 		}
 		if (off+size)/index.chunkSize <= chunkID {
