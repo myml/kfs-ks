@@ -7,30 +7,38 @@ import (
 
 	"github.com/myml/ks/storage"
 	"gocloud.dev/blob"
+	"gocloud.dev/gcerrors"
 
 	_ "gocloud.dev/blob/fileblob"
 	_ "gocloud.dev/blob/memblob"
 	_ "gocloud.dev/blob/s3blob"
 )
 
-var _ storage.Storage = &Blob{}
+var _ storage.Storage = &Storage{}
 
-type Blob struct {
+type Storage struct {
 	gocloud *blob.Bucket
 }
 
-func NewBlob(url string) (*Blob, error) {
+func NewStorage(url string) (*Storage, error) {
 	bucket, err := blob.OpenBucket(context.Background(), url)
 	if err != nil {
 		return nil, fmt.Errorf("open bucket: %w", err)
 	}
-	return &Blob{gocloud: bucket}, nil
+	return &Storage{gocloud: bucket}, nil
 }
 
-func (b *Blob) Get(key string, offset int64, length int64) (io.ReadCloser, error) {
-	return b.gocloud.NewRangeReader(context.Background(), key, offset, length, nil)
+func (b *Storage) Get(key string, offset int64, length int64) (io.ReadCloser, error) {
+	if length == 0 {
+		length = -1
+	}
+	r, err := b.gocloud.NewRangeReader(context.Background(), key, offset, length, nil)
+	if gcerrors.Code(err) == gcerrors.NotFound {
+		return nil, nil
+	}
+	return r, nil
 }
-func (b *Blob) Set(key string, in io.Reader) error {
+func (b *Storage) Set(key string, in io.Reader) error {
 	w, err := b.gocloud.NewWriter(context.Background(), key, nil)
 	if err != nil {
 		return fmt.Errorf("new write: %w", err)
