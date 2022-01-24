@@ -1,4 +1,4 @@
-package mem
+package file
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMemStorage(t *testing.T) {
+func TestFileStorage(t *testing.T) {
 	assert := require.New(t)
 	store := &Storage{}
 	testutils.TestStorage(assert, store)
