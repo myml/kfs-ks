@@ -12,14 +12,17 @@ var _ storage.Storage = &Storage{}
 
 type Storage struct {
 	RawStorage storage.Storage
-	store      sync.Map
+	rwlock     sync.RWMutex
+	cacheKey   string
+	cacheData  []byte
 }
 
 func (b *Storage) Get(key string, offset int64, length int64) (io.ReadCloser, error) {
-	var data []byte
-	if v, ok := b.store.Load(key); ok {
-		data = v.([]byte)
-	} else {
+	b.rwlock.RLock()
+	ckey, cdata := b.cacheKey, b.cacheData
+	b.rwlock.RUnlock()
+
+	if cdata == nil || ckey != key {
 		r, err := b.RawStorage.Get(key, 0, 0)
 		if err != nil {
 			return nil, err
@@ -28,36 +31,42 @@ func (b *Storage) Get(key string, offset int64, length int64) (io.ReadCloser, er
 			return nil, nil
 		}
 		defer r.Close()
-		data, err = io.ReadAll(r)
+		cdata, err = io.ReadAll(r)
 		if err != nil {
 			return nil, err
 		}
-		b.store.Store(key, data)
+		b.rwlock.RLock()
+		b.cacheKey = key
+		b.cacheData = cdata
+		b.rwlock.RUnlock()
 	}
 	if offset > 0 {
-		data = data[offset:]
+		cdata = cdata[offset:]
 	}
 	if length > 0 {
-		data = data[:length]
+		cdata = cdata[:length]
 	}
-	return io.NopCloser(bytes.NewReader(data)), nil
+	return io.NopCloser(bytes.NewReader(cdata)), nil
 }
 func (b *Storage) Set(key string, in io.Reader) error {
 	data, err := io.ReadAll(in)
 	if err != nil {
 		return err
 	}
-	b.store.Store(key, data)
+	b.rwlock.Lock()
+	b.cacheKey = key
+	b.cacheData = data
+	b.rwlock.Unlock()
 	return nil
 }
 func (b *Storage) Flush() error {
-	var err error
-	b.store.Range(func(k, v interface{}) bool {
-		key := k.(string)
-		value := v.([]byte)
-		err = b.RawStorage.Set(key, bytes.NewReader(value))
-		b.store.Delete(key)
-		return err == nil
-	})
-	return err
+	err := b.RawStorage.Set(b.cacheKey, bytes.NewReader(b.cacheData))
+	if err != nil {
+		return err
+	}
+	b.rwlock.Lock()
+	b.cacheKey = ""
+	b.cacheData = nil
+	b.rwlock.Unlock()
+	return nil
 }
